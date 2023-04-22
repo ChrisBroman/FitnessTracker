@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Edit Profile{% endblock title %}
+
+{% block content %}
+
+
+<div class="container">
+    <h1 class="my-4 text-center">Edit Profile</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-3 me-5">
+            <h4>Current Settings</h4>
+            <div class="d-grid gap-2">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th>Name</th>
+                            <td>{{ athlete.name|title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Height</th>
+                            <td>{{ athlete.height }} cm</td>
+                        </tr>
+                        <tr>
+                            <th>Weight</th>
+                            <td>{{ athlete.current_weight }} lbs</td>
+                        </tr>
+                        <tr>
+                            <th>Current BMI</th>
+                            <td>{{ athlete.current_bmi }}</td>
+                        </tr>
+                        <tr>
+                            <th>Current BMI Class</th>
+                            <td>{{ athlete.current_bmi_class }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Blood Pressure Reading</th>
+                            <td>{{ athlete.current_blood_pressure_sys }} / {{ athlete.current_blood_pressure_dia }}</td>
+                        </tr>
+                        <tr>
+                            <th>Blood Pressure Status</th>
+                            <td>{{ athlete.current_blood_pressure_status }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <form method="post" action=".">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }} <br>
+                        {{ field }}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

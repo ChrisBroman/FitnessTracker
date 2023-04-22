@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h3 class="text-center py-4">Dashboard</h3>
+        </div>
+    </div>
+    <div class="row">
+        {% if user.is_authenticated %}
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+            <a href="#" class="text-decoration-none text-reset">
+                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                    <img src="{% static 'core/img/heart.png' %}" class="card-img-top" alt="heart">
+                    <div class="card-body">
+                        <h5 class="card-title">Health Log</h5>
+                        <div class='card-text'>
+                            <p>Record and track your health stats</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+            <a href="#" class="text-decoration-none text-reset">
+                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                    <img src="{% static 'core/img/weights.png' %}" class="card-img-top" alt="heart">
+                    <div class="card-body">
+                        <h5 class="card-title">Workout Log</h5>
+                        <div class='card-text'>
+                            <p>Record and track your workouts</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+            <a href="{% url 'core:view_profile' %}" class="text-decoration-none text-reset">
+                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                    <img src="{% static 'core/img/tape.png' %}" class="card-img-top" alt="heart">
+                    <div class="card-body">
+                        <h5 class="card-title">View Profile</h5>
+                        <div class='card-text'>
+                            <p>View your current profile</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col">
+                <h3 class="text-center py-4">Please sign up or log in to continue</h3>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}
