@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
-from .forms import SignupForm,  NewProfileForm, EditProfileForm
+from .forms import SignupForm,  NewProfileForm, EditProfileForm, CreateHealthRecordForm
 from .models import Athlete, WorkoutRecord, HealthRecord
 
 import matplotlib
@@ -15,23 +15,37 @@ import io
 import urllib
 import base64
 from decimal import Decimal
+from datetime import datetime
 
 def convert_to_kilos(weight):
     return float(weight) * 0.45359237
 
 def blood_pressure_category(systolic, diastolic):
     if systolic < 120 and diastolic < 80:
-        return 1  #Normal
+        return Athlete.BP_NORMAL
     elif 120 <= systolic <= 129 and diastolic < 80:
-        return 2 #Elevated
+        return Athlete.BP_ELEVATED
     elif 130 <= systolic <= 139 or 80 <= diastolic <= 89:
-        return 3 #Hypertension Stage 1
+        return Athlete.BP_HYPERTENSION_STAGE_1
     elif systolic >= 140 or diastolic >= 90:
-        return 4 #Hypertension Stage 2
-    elif systolic > 180 or diastolic > 120:
-        return 5 #Hypertensive crisis (emergency care needed)
+        return Athlete.BP_HYPERTENSION_STAGE_2
     else:
-        return 0
+        return Athlete.BP_HYPERTENSIVE_CRISIS
+    
+def bmi_category(bmi):
+    if bmi < 18.5:
+        bmi_class = Athlete.UNDERWEIGHT
+    elif bmi >= 18.5 and bmi < 25:
+        bmi_class = Athlete.NORMAL
+    elif bmi >= 25 and bmi < 30:
+        bmi_class = Athlete.OVERWEIGHT
+    elif bmi >= 30 and bmi < 35:
+        bmi_class = Athlete.OBESE_MODERATE
+    elif bmi >= 35 and bmi < 40:
+        bmi_class = Athlete.OBESE_SEVERE
+    else:
+        bmi_class = Athlete.OBESE_VERY_SEVERE
+    return bmi_class
 
 def calculate_bmi(weight, height):
     height_m = height / 100
@@ -42,8 +56,10 @@ def calculate_bmi(weight, height):
 class Index(View):
     def get(self, request):
         user = request.user
+        athlete = Athlete.objects.filter(user=user).first()
         context = {
             'user': user,
+            'athlete': athlete,
         }
         return render(request, 'core/index.html', context)
     
@@ -85,46 +101,22 @@ class CreateAthlete(View, LoginRequiredMixin):
         systolic = form.cleaned_data['current_blood_pressure_sys']
         diastolic = form.cleaned_data['current_blood_pressure_dia'] 
         new_profile.current_bmi = calculate_bmi(weight, height)
-        
-        if new_profile.current_bmi < 18.5:
-            new_profile.current_bmi_class = Athlete.UNDERWEIGHT
-        elif new_profile.current_bmi >= 18.5 and new_profile.current_bmi < 25:
-            new_profile.current_bmi_class = Athlete.NORMAL
-        elif new_profile.current_bmi >= 25 and new_profile.current_bmi < 30:
-            new_profile.current_bmi_class = Athlete.OVERWEIGHT
-        elif new_profile.current_bmi >= 30 and new_profile.current_bmi < 35:
-            new_profile.current_bmi_class = Athlete.OBESE_MODERATE
-        elif new_profile.current_bmi >= 35 and new_profile.current_bmi < 40:
-            new_profile.current_bmi_class = Athlete.OBESE_SEVERE
-        else:
-            new_profile.current_bmi_class = Athlete.OBESE_VERY_SEVERE
-            
-        bp_index = blood_pressure_category(systolic, diastolic)
-        if bp_index == 1:
-            new_profile.current_blood_pressure_status = Athlete.BP_NORMAL
-        elif bp_index == 2:
-            new_profile.current_blood_pressure_status = Athlete.BP_ELEVATED
-        elif bp_index == 3:
-            new_profile.current_blood_pressure_status = Athlete.BP_HYPERTENSION_STAGE_1
-        elif bp_index == 4:
-            new_profile.current_blood_pressure_status = Athlete.BP_HYPERTENSION_STAGE_2
-        else:
-            new_profile.current_blood_pressure_status = Athlete.BP_HYPERTENSIVE_CRISIS
-            
+        new_profile.current_bmi_class = bmi_category(new_profile.current_bmi)
+        new_profile.current_blood_pressure_status = blood_pressure_category(systolic, diastolic)    
         new_profile.save()
         return redirect("core:index")
 
 class ViewProfile(View, LoginRequiredMixin):
-    def get(self, request):
+    def get(self, request, athlete_pk):
         user = request.user
-        athlete = Athlete.objects.get(user=user)
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
         context = {'athlete': athlete}
         return render(request, 'core/view_profile.html', context)            
     
 class EditProfile(View, LoginRequiredMixin):
-    def get(self, request):
+    def get(self, request, athlete_pk):
         user = request.user
-        athlete = Athlete.objects.get(user=user)
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
         form = EditProfileForm()
         context = {
             'form': form,
@@ -132,7 +124,7 @@ class EditProfile(View, LoginRequiredMixin):
         }
         return render(request, 'core/edit_profile.html', context)
     
-    def post(self, request):
+    def post(self, request, athlete_pk):
         user = request.user
         athlete = Athlete.objects.get(user=user)
         form = EditProfileForm(request.POST, instance=athlete)
@@ -149,36 +141,113 @@ class EditProfile(View, LoginRequiredMixin):
         systolic = form.cleaned_data['current_blood_pressure_sys']
         diastolic = form.cleaned_data['current_blood_pressure_dia'] 
         edited_profile.current_bmi = calculate_bmi(weight, height)
-        if edited_profile.current_bmi < 18.5:
-            edited_profile.current_bmi_class = Athlete.UNDERWEIGHT
-        elif edited_profile.current_bmi >= 18.5 and edited_profile.current_bmi < 25:
-            edited_profile.current_bmi_class = Athlete.NORMAL
-        elif edited_profile.current_bmi >= 25 and edited_profile.current_bmi < 30:
-            edited_profile.current_bmi_class = Athlete.OVERWEIGHT
-        elif edited_profile.current_bmi >= 30 and edited_profile.current_bmi < 35:
-            edited_profile.current_bmi_class = Athlete.OBESE_MODERATE
-        elif edited_profile.current_bmi >= 35 and edited_profile.current_bmi < 40:
-            edited_profile.current_bmi_class = Athlete.OBESE_SEVERE
-        else:
-            edited_profile.current_bmi_class = Athlete.OBESE_VERY_SEVERE
-            
-        bp_index = blood_pressure_category(systolic, diastolic)
-        if bp_index == 1:
-            edited_profile.current_blood_pressure_status = Athlete.BP_NORMAL
-        elif bp_index == 2:
-            edited_profile.current_blood_pressure_status = Athlete.BP_ELEVATED
-        elif bp_index == 3:
-            edited_profile.current_blood_pressure_status = Athlete.BP_HYPERTENSION_STAGE_1
-        elif bp_index == 4:
-            edited_profile.current_blood_pressure_status = Athlete.BP_HYPERTENSION_STAGE_2
-        else:
-            edited_profile.current_blood_pressure_status = Athlete.BP_HYPERTENSIVE_CRISIS
-            
+        edited_profile.current_bmi_class = bmi_category(edited_profile.current_bmi)
+        edited_profile.current_blood_pressure_status = blood_pressure_category(systolic, diastolic)
         edited_profile.save()
-        return redirect('core:view_profile')
+        return redirect('core:view_profile', athlete_pk=athlete_pk)
 
-def delete_profile(request):
+def delete_profile(request, athlete_pk):
     user = request.user
-    athlete = Athlete.objects.get(user=user)
+    athlete = Athlete.objects.get(user=user, pk=athlete_pk)
     athlete.delete()
     return redirect('core:index')
+
+class CreateHealthRecord(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk):
+        form = CreateHealthRecordForm()
+        context = {'form': form}
+        return render(request, 'core/new_health_record.html', context)
+    
+    def post(self, request, athlete_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        form = CreateHealthRecordForm(request.POST)
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, 'core/new_health_record.html', context)
+        new_record = form.save(commit=False)
+        new_record.athlete = athlete
+        new_record.save()
+        weight = form.cleaned_data['weight']
+        systolic = form.cleaned_data['blood_pressure_sys']
+        diastolic = form.cleaned_data['blood_pressure_dia']
+        weight_kg = convert_to_kilos(weight)
+        athlete.current_weight = weight
+        athlete.current_bmi = calculate_bmi(weight_kg, athlete.height)
+        athlete.current_bmi_class = bmi_category(athlete.current_bmi)
+        athlete.current_blood_pressure_sys = systolic
+        athlete.current_blood_pressure_dia = diastolic
+        athlete.current_blood_pressure_status = blood_pressure_category(systolic, diastolic)
+        athlete.save(update_fields=['current_weight', 'current_bmi', 'current_bmi_class','current_blood_pressure_sys', 'current_blood_pressure_dia', 'current_blood_pressure_status'])
+        return redirect('core:view_health_records', athlete_pk=athlete_pk)
+    
+class ViewHealthRecords(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        records = HealthRecord.objects.filter(athlete=athlete)
+        context = {
+            'athlete': athlete,
+            'records': records,
+        }
+        return render(request, 'core/view_health_records.html', context)
+    
+class ViewHealthRecord(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk, record_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        record = HealthRecord.objects.get(athlete=athlete, pk=record_pk)
+        context = {
+            'athlete': athlete,
+            'record': record,
+        }
+        return render(request, 'core/view_record.html', context)
+    
+class EditHealthRecord(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk, record_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        record = HealthRecord.objects.get(athlete=athlete, pk=record_pk)
+        form = CreateHealthRecordForm()
+        context = {
+            'athlete': athlete,
+            'record': record,
+            'form': form
+        }
+        return render(request, 'core/edit_health_record.html', context)
+        
+    def post(self, request, athlete_pk, record_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        record = HealthRecord.objects.get(athlete=athlete, pk=record_pk)
+        form = CreateHealthRecordForm(request.POST, instance=record)
+        if not form.is_valid():
+            context = {
+                'athlete': athlete,
+                'record': record,
+                'form': form,
+            }
+            return render(request, 'core/edit_health_record.html', context)
+        edited = form.save(commit=False)
+        current_date = HealthRecord.objects.filter(athlete=athlete).first().date
+        if form.cleaned_data['date'] > current_date:
+            weight = form.cleaned_data['weight']
+            systolic = form.cleaned_data['blood_pressure_sys']
+            diastolic = form.cleaned_data['blood_pressure_dia']
+            weight_kg = convert_to_kilos(weight)
+            athlete.current_weight = weight
+            athlete.current_bmi = calculate_bmi(weight_kg, athlete.height)
+            athlete.current_bmi_class = bmi_category(athlete.current_bmi)
+            athlete.current_blood_pressure_sys = systolic
+            athlete.current_blood_pressure_dia = diastolic
+            athlete.current_blood_pressure_status = blood_pressure_category(systolic, diastolic)
+            athlete.save(update_fields=['current_weight', 'current_bmi', 'current_bmi_class','current_blood_pressure_sys', 'current_blood_pressure_dia', 'current_blood_pressure_status'])
+        edited.save()    
+        return redirect('core:view_record', athlete_pk=athlete_pk, record_pk=record_pk)
+    
+def delete_health_record(request, athlete_pk, record_pk):
+    user = request.user
+    athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+    record = HealthRecord.objects.get(athlete=athlete, pk=record_pk)
+    record.delete()
+    return redirect('core:view_health_records', athlete_pk=athlete_pk)

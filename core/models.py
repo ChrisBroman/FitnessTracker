@@ -51,7 +51,7 @@ class HealthRecord(models.Model):
     class Meta:
         ordering = ('-date',)
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE)
     date = models.DateField()
     weight = models.DecimalField(decimal_places=1, max_digits=4)
     blood_pressure_sys = models.IntegerField(validators=[MinValueValidator(30), MaxValueValidator(170)], null=True, blank=True)     
@@ -64,7 +64,7 @@ class WorkoutRecord(models.Model):
     class Meta:
         ordering = ('-date',)
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE)
     date = models.DateField()
     description = models.CharField(max_length=256)
     duration = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(180)])

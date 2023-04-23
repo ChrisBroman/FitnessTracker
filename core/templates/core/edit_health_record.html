@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Edit Health Record{% endblock title %}
+
+{% block content %}
+
+
+<div class="container">
+    <h1 class="my-4 text-center">Edit Health Record</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-3 me-5">
+            <h4>Current Settings</h4>
+            <div class="d-grid gap-2">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th>Date</th>
+                            <td>{{ record.date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Weight</th>
+                            <td>{{ record.weight }}</td>
+                        </tr>
+                        <tr>
+                            <th>Systolic Blood Pressure</th>
+                            <td>{{ record.blood_pressure_sys }}</td>
+                        </tr>
+                        <tr>
+                            <th>Diastolic Blood Pressure</th>
+                            <td>{{ record.blood_pressure_dia }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <form method="post" action=".">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }} <br>
+                        {{ field }}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

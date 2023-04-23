@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Add Health Record{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4 text-center">Add Health Record</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form method="post" action=".">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }} <br>
+                        {{ field }}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Create Health Record</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -50,3 +50,14 @@ class EditProfileForm(forms.ModelForm):
             'current_blood_pressure_sys': forms.TextInput(),
             'current_blood_pressure_dia': forms.TextInput(),
         }
+        
+class CreateHealthRecordForm(forms.ModelForm):
+    class Meta:
+        model = HealthRecord
+        fields = ['date', 'weight', 'blood_pressure_sys', 'blood_pressure_dia']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'weight': forms.TextInput(),
+            'blood_pressure_sys': forms.TextInput(),
+            'blood_pressure_dia': forms.TextInput(),
+        }

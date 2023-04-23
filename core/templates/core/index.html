@@ -5,6 +5,7 @@
 {% block title %}Dashboard{% endblock title %}
 
 {% block content %}
+{% if athlete %}
 <div class="container">
     <div class="row">
         <div class="col">
@@ -14,7 +15,7 @@
     <div class="row">
         {% if user.is_authenticated %}
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-            <a href="#" class="text-decoration-none text-reset">
+            <a href="{% url 'core:view_health_records' athlete.id %}" class="text-decoration-none text-reset">
                 <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
                     <img src="{% static 'core/img/heart.png' %}" class="card-img-top" alt="heart">
                     <div class="card-body">
@@ -40,7 +41,7 @@
             </a>
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-            <a href="{% url 'core:view_profile' %}" class="text-decoration-none text-reset">
+            <a href="{% url 'core:view_profile' athlete.id %}" class="text-decoration-none text-reset">
                 <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
                     <img src="{% static 'core/img/tape.png' %}" class="card-img-top" alt="heart">
                     <div class="card-body">
@@ -61,5 +62,12 @@
         {% endif %}
     </div>
 </div>
-
+{% else %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h3 class="text-center py-4">Please create a new profile to begin.</h3>
+        </div>
+    </div>
+{% endif %}
 {% endblock content %}
