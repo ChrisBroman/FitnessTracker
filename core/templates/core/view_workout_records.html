@@ -1,0 +1,68 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Health Records{% endblock title %}
+
+{% block content %}
+    <div class='container'>
+
+        <h1 class='my-4 text-center'>{{athlete|title}}'s Workout Records</h1>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                        <tr class="record-row" data-index="{{ forloop.counter }}">
+                            <td><a href="{% url 'core:view_workout_record' athlete.id record.id %}" class="text-decoration-none text-reset">{{record.date}}</a></td>
+                            <td><a href="{% url 'core:view_workout_record' athlete.id record.id %}" class="text-decoration-none text-reset">{{record.description}}</a></td>
+                            <td><a href="{% url 'core:view_workout_record' athlete.id record.id %}" class="text-decoration-none text-reset">{{record.duration}} minutes</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button id="show-more" class="btn btn-primary mt-2">Show More</button>
+        </div>
+        <div class='py-4 d-flex justify-content-center'>
+            <a href="{% url 'core:create_workout_record' athlete.id %}" class="btn btn-primary me-3">Add Workout Record</a>
+            <a href="{% url 'core:view_profile' athlete.id %}" class="btn btn-primary">Athlete Details</a>
+        </div>
+    </div>
+    
+{% endblock content %}
+
+{% block scripts %}
+    <script>
+        const recordRows = document.querySelectorAll('.record-row');
+        const showMoreButton = document.getElementById('show-more');
+        const rowsPerPage = 10;
+        let visibleRows = rowsPerPage;
+
+        function updateRows() {
+            recordRows.forEach((row, index) => {
+                if (index < visibleRows) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (visibleRows >= recordRows.length) {
+                showMoreButton.style.display = 'none';
+            } else {
+                showMoreButton.style.display = '';
+            }
+        }
+
+        showMoreButton.addEventListener('click', () => {
+            visibleRows += rowsPerPage;
+            updateRows();
+        });
+
+        updateRows();
+    </script>
+{% endblock %}

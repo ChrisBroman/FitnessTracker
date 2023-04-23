@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
-from .forms import SignupForm,  NewProfileForm, EditProfileForm, CreateHealthRecordForm
+from .forms import SignupForm,  NewProfileForm, EditProfileForm, CreateHealthRecordForm, CreateWorkoutRecordForm
 from .models import Athlete, WorkoutRecord, HealthRecord
 
 import matplotlib
@@ -251,3 +251,74 @@ def delete_health_record(request, athlete_pk, record_pk):
     record = HealthRecord.objects.get(athlete=athlete, pk=record_pk)
     record.delete()
     return redirect('core:view_health_records', athlete_pk=athlete_pk)
+
+class ViewWorkoutRecords(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        records = WorkoutRecord.objects.filter(athlete=athlete)
+        context = {
+            'athlete': athlete,
+            'records': records,
+        }
+        return render(request, 'core/view_workout_records.html', context)
+    
+class CreateWorkoutRecord(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk):
+        user = request.user
+        form = CreateWorkoutRecordForm()
+        context = {'form': form}
+        return render(request, 'core/create_workout_record.html', context)
+    
+    def post(self, request, athlete_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        form = CreateWorkoutRecordForm(request.POST)
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, 'core/create_workout_record.html', context)
+        new_record = form.save(commit=False)
+        new_record.athlete = athlete
+        new_record.save()
+        return redirect('core:view_workout_records', athlete_pk=athlete_pk)
+    
+class ViewWorkoutRecord(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk, record_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        record = WorkoutRecord.objects.get(athlete=athlete, pk=record_pk)
+        context = {
+            'athlete': athlete,
+            'record': record,
+        }
+        return render(request, 'core/view_workout_record.html', context)
+    
+class EditWorkoutRecord(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk, record_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        record = WorkoutRecord.objects.get(athlete=athlete, pk=record_pk)
+        form = CreateWorkoutRecordForm()
+        context = {
+            'form': form,
+            'record': record,
+        }
+        return render(request, 'core/edit_workout_record.html', context)
+    
+    def post(self, request, athlete_pk, record_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        record = WorkoutRecord.objects.get(athlete=athlete, pk=record_pk)
+        form = CreateWorkoutRecordForm(request.POST, instance=record)
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, 'core/edit_workout_record.html', context)
+        form.save()
+        return redirect('core:view_workout_record', athlete_pk=athlete_pk, record_pk=record_pk)
+    
+def delete_workout_record(request, athlete_pk, record_pk):
+    user = request.user
+    athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+    record = WorkoutRecord.objects.get(athlete=athlete, pk=record_pk)
+    record.delete()
+    return redirect('core:view_workout_records', athlete_pk=athlete_pk)

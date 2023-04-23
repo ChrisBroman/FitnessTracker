@@ -61,3 +61,13 @@ class CreateHealthRecordForm(forms.ModelForm):
             'blood_pressure_sys': forms.TextInput(),
             'blood_pressure_dia': forms.TextInput(),
         }
+        
+class CreateWorkoutRecordForm(forms.ModelForm):
+    class Meta:
+        model = WorkoutRecord
+        fields = ['date', 'description', 'duration']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.TextInput(),
+            'duration': forms.TextInput,
+        }

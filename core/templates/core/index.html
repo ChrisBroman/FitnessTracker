@@ -28,7 +28,7 @@
             </a>
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-            <a href="#" class="text-decoration-none text-reset">
+            <a href="{% url 'core:view_workout_records' athlete.id %}" class="text-decoration-none text-reset">
                 <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
                     <img src="{% static 'core/img/weights.png' %}" class="card-img-top" alt="heart">
                     <div class="card-body">

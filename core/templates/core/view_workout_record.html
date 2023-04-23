@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Workout Record{% endblock title %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="my-4 text-center">{{ record.description|title }} Details</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-3 me-5">
+                <h4>Actions</h4>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'core:view_profile' athlete.id %}" class="btn btn-primary">Athlete Details</a>
+                    <a href="{% url 'core:edit_workout_record' athlete.id record.id %}" class="btn btn-primary">Edit Record</a>
+                    <a href="{% url 'core:view_workout_records' athlete.id %}" class="btn btn-primary">View Records</a>
+                    <a href="{% url 'core:delete_workout_record' athlete.id record.id %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this record?');">Delete Record</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4>Stats</h4>
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th>Date</th>
+                            <td>{{ record.date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ record.description }}</td>
+                        </tr>
+                        <tr>
+                            <th>Duration</th>
+                            <td>{{ record.duration }} minutes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
