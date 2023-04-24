@@ -43,6 +43,7 @@ class Athlete(models.Model):
     current_blood_pressure_sys = models.IntegerField(validators=[MinValueValidator(30), MaxValueValidator(170)], null=True, blank=True)
     current_blood_pressure_dia = models.IntegerField(validators=[MinValueValidator(30), MaxValueValidator(170)], null=True, blank=True)
     current_blood_pressure_status = models.CharField(max_length=32, choices=BP_CHOICES, null=True, blank=True)
+    openai_api_key = models.CharField(max_length=64, null=True, blank=True)
     
     def __str__(self):
         return self.name
@@ -68,3 +69,33 @@ class WorkoutRecord(models.Model):
     date = models.DateField()
     description = models.CharField(max_length=256)
     duration = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(180)])
+    
+class GymEquipment(models.Model):
+    EQUIPMENT_CHOICES = [
+        ('Treadmill', 'Treadmill'),
+        ('Bench Press', 'Bench Press'),
+        ('Dumbbells', 'Dumbbells'),
+        ('Squat Rack', 'Squat Rack'),
+        ('Bowflex', 'Bowflex'),
+        ('Chinup Bar', 'Chin Up Bar'),
+        ('No Equipment', 'No Equipment')
+    ]
+    
+    equipment = models.CharField(max_length=50, choices=EQUIPMENT_CHOICES, unique=True)
+    
+    def __str__(self):
+        return self.equipment
+    
+    
+class WorkoutCategory(models.Model):
+    WORKOUT_CHOICES = [
+        ('Upper Body', 'Upper Body'),
+        ('Lower Body', 'Lower Body'),
+        ('Core', 'Core'),
+        ('Cardio', 'Cardio'),
+    ]
+    
+    workout = models.CharField(max_length=32, choices=WORKOUT_CHOICES, unique=True)
+    
+    def __str__(self):
+        return self.workout

@@ -30,7 +30,7 @@
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
             <a href="{% url 'core:view_workout_records' athlete.id %}" class="text-decoration-none text-reset">
                 <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
-                    <img src="{% static 'core/img/weights.png' %}" class="card-img-top" alt="heart">
+                    <img src="{% static 'core/img/scale.png' %}" class="card-img-top" alt="heart">
                     <div class="card-body">
                         <h5 class="card-title">Workout Log</h5>
                         <div class='card-text'>
@@ -48,6 +48,19 @@
                         <h5 class="card-title">View Profile</h5>
                         <div class='card-text'>
                             <p>View your current profile</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+            <a href="{% url 'core:select_equipment' athlete.id %}" class="text-decoration-none text-reset">
+                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                    <img src="{% static 'core/img/weights.png' %}" class="card-img-top" alt="heart">
+                    <div class="card-body">
+                        <h5 class="card-title">Workout Generator</h5>
+                        <div class='card-text'>
+                            <p>Generate a workout</p>
                         </div>
                     </div>
                 </div>

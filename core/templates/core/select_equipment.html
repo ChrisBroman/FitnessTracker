@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Generate Workout{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4 text-center">Select Equipment</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form method="post" action=".">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.auto_id }}" class="fw-bold mb-2">{{ field.label }}</label> <br>
+                        {% if field.name == "workout_category" %}
+                            <select name="{{ field.html_name }}" id="{{ field.auto_id }}" class="form-select">
+                                {% for choice in field.field.queryset %}
+                                    <option value="{{ choice.pk }}" {% if choice.pk == field.value %}selected{% endif %}>{{ choice }}</option>
+                                {% endfor %}
+                            </select>
+                        {% elif field.name == "equipment" %}
+                            {% for choice in field.field.queryset %}
+                                <input type="checkbox" name="{{ field.html_name }}" value="{{ choice.pk }}" id="{{ field.auto_id }}_{{ forloop.counter }}" {% if choice.pk in field.value %}checked{% endif %} class="form-check-input">
+                                <label for="{{ field.auto_id }}_{{ forloop.counter }}" class="form-check-label">{{ choice }}</label><br>
+                            {% endfor %}
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Create Workout</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

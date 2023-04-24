@@ -1,66 +1,24 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth import logout
-from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
-from .forms import SignupForm,  NewProfileForm, EditProfileForm, CreateHealthRecordForm, CreateWorkoutRecordForm
-from .models import Athlete, WorkoutRecord, HealthRecord
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import io
-import urllib
-import base64
-from decimal import Decimal
-from datetime import datetime
-
-def convert_to_kilos(weight):
-    return float(weight) * 0.45359237
-
-def blood_pressure_category(systolic, diastolic):
-    if systolic < 120 and diastolic < 80:
-        return Athlete.BP_NORMAL
-    elif 120 <= systolic <= 129 and diastolic < 80:
-        return Athlete.BP_ELEVATED
-    elif 130 <= systolic <= 139 or 80 <= diastolic <= 89:
-        return Athlete.BP_HYPERTENSION_STAGE_1
-    elif systolic >= 140 or diastolic >= 90:
-        return Athlete.BP_HYPERTENSION_STAGE_2
-    else:
-        return Athlete.BP_HYPERTENSIVE_CRISIS
-    
-def bmi_category(bmi):
-    if bmi < 18.5:
-        bmi_class = Athlete.UNDERWEIGHT
-    elif bmi >= 18.5 and bmi < 25:
-        bmi_class = Athlete.NORMAL
-    elif bmi >= 25 and bmi < 30:
-        bmi_class = Athlete.OVERWEIGHT
-    elif bmi >= 30 and bmi < 35:
-        bmi_class = Athlete.OBESE_MODERATE
-    elif bmi >= 35 and bmi < 40:
-        bmi_class = Athlete.OBESE_SEVERE
-    else:
-        bmi_class = Athlete.OBESE_VERY_SEVERE
-    return bmi_class
-
-def calculate_bmi(weight, height):
-    height_m = height / 100
-    bmi_unround = weight / (height_m ** 2)
-    bmi_round = round(bmi_unround, 2)
-    return bmi_round
+from .forms import SignupForm,  NewProfileForm, EditProfileForm, CreateHealthRecordForm, CreateWorkoutRecordForm, WorkoutGeneratorForm
+from .models import Athlete, WorkoutRecord, HealthRecord, GymEquipment, WorkoutCategory
+from .functions import *
 
 class Index(View):
     def get(self, request):
         user = request.user
-        athlete = Athlete.objects.filter(user=user).first()
-        context = {
-            'user': user,
-            'athlete': athlete,
-        }
+        if Athlete.objects.count() != 0:
+            athlete = Athlete.objects.filter(user=user).first()
+            context = {
+                'user': user,
+                'athlete': athlete,
+            }
+        else:
+            context = {}
         return render(request, 'core/index.html', context)
     
 class Signup(View):
@@ -110,7 +68,24 @@ class ViewProfile(View, LoginRequiredMixin):
     def get(self, request, athlete_pk):
         user = request.user
         athlete = Athlete.objects.get(user=user, pk=athlete_pk)
-        context = {'athlete': athlete}
+        records = HealthRecord.objects.filter(athlete=athlete)
+        date_list = []
+        y_weight_list = []
+        for record in records:
+            date_list.append(record.date)
+            y_weight_list.append(record.weight)
+        weight_graph_image = create_weight_graph(date_list, y_weight_list)
+        systolic_list = []
+        diastolic_list = []
+        for record in records:
+            systolic_list.append(record.blood_pressure_sys)
+            diastolic_list.append(record.blood_pressure_dia)
+        bloodpressure_graph_image = create_blood_pressure_graph(date_list, systolic_list, diastolic_list)
+        context = {
+            'athlete': athlete,
+            'weight_graph': weight_graph_image,
+            'bloodpressure_graph': bloodpressure_graph_image
+        }
         return render(request, 'core/view_profile.html', context)            
     
 class EditProfile(View, LoginRequiredMixin):
@@ -146,6 +121,7 @@ class EditProfile(View, LoginRequiredMixin):
         edited_profile.save()
         return redirect('core:view_profile', athlete_pk=athlete_pk)
 
+@login_required
 def delete_profile(request, athlete_pk):
     user = request.user
     athlete = Athlete.objects.get(user=user, pk=athlete_pk)
@@ -244,7 +220,8 @@ class EditHealthRecord(View, LoginRequiredMixin):
             athlete.save(update_fields=['current_weight', 'current_bmi', 'current_bmi_class','current_blood_pressure_sys', 'current_blood_pressure_dia', 'current_blood_pressure_status'])
         edited.save()    
         return redirect('core:view_record', athlete_pk=athlete_pk, record_pk=record_pk)
-    
+
+@login_required
 def delete_health_record(request, athlete_pk, record_pk):
     user = request.user
     athlete = Athlete.objects.get(user=user, pk=athlete_pk)
@@ -315,10 +292,46 @@ class EditWorkoutRecord(View, LoginRequiredMixin):
             return render(request, 'core/edit_workout_record.html', context)
         form.save()
         return redirect('core:view_workout_record', athlete_pk=athlete_pk, record_pk=record_pk)
-    
+
+@login_required
 def delete_workout_record(request, athlete_pk, record_pk):
     user = request.user
     athlete = Athlete.objects.get(user=user, pk=athlete_pk)
     record = WorkoutRecord.objects.get(athlete=athlete, pk=record_pk)
     record.delete()
     return redirect('core:view_workout_records', athlete_pk=athlete_pk)
+
+class SelectEquipment(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk):
+        form = WorkoutGeneratorForm()
+        context = {'form': form}
+        return render(request, 'core/select_equipment.html', context)
+    
+    def post(self, request, athlete_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        form = WorkoutGeneratorForm(request.POST)
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, 'core/select_equipment.html', context)
+        selected_equipment = form.cleaned_data['equipment']
+        selected_workout_category = form.cleaned_data['workout_category']
+        request.session['selected_workout_category'] = selected_workout_category.id
+        request.session['selected_equipment'] = list(selected_equipment.values_list('id', flat=True))
+        return redirect('core:generate_workout', athlete_pk=athlete_pk)
+    
+class GenerateWorkout(View, LoginRequiredMixin):
+    def get(self, request, athlete_pk):
+        user = request.user
+        athlete = Athlete.objects.get(user=user, pk=athlete_pk)
+        api_key = athlete.openai_api_key
+        equipment_ids = request.session['selected_equipment']
+        workout_type_id = request.session['selected_workout_category']
+        equipment = GymEquipment.objects.filter(id__in=equipment_ids)
+        workout_type = WorkoutCategory.objects.get(id=workout_type_id)
+        workout = generate_workout(api_key, equipment, workout_type)
+        context = {
+            'workout_type': workout_type,
+            'workout': workout,
+        }
+        return render(request, 'core/generate_workout.html', context)

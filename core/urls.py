@@ -27,5 +27,8 @@ urlpatterns = [
     path('<int:athlete_pk>/create_workout_record/', views.CreateWorkoutRecord.as_view(), name='create_workout_record'),
     path('<int:athlete_pk>/<int:record_pk>/view_workout_record/', views.ViewWorkoutRecord.as_view(), name='view_workout_record'),
     path('<int:athlete_pk>/<int:record_pk>/edit_workout_record/', views.EditWorkoutRecord.as_view(), name='edit_workout_record'),
-    path('<int:athlete_pk>/<int:record_pk>/delete_workout_record/', views.delete_workout_record, name='delete_workout_record'),   
+    path('<int:athlete_pk>/<int:record_pk>/delete_workout_record/', views.delete_workout_record, name='delete_workout_record'),
+    
+    path('<int:athlete_pk>/select_equipment/', views.SelectEquipment.as_view(), name='select_equipment'),
+    path('<int:athlete_pk>/generate_workout/', views.GenerateWorkout.as_view(), name='generate_workout'),   
 ]
