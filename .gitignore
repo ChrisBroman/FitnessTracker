@@ -2,3 +2,4 @@ venv
 db.sqlite
 migrations
 db.sqlite3
+.env

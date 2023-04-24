@@ -5,81 +5,84 @@
 {% block title %}Dashboard{% endblock title %}
 
 {% block content %}
-{% if athlete %}
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h3 class="text-center py-4">Dashboard</h3>
-        </div>
-    </div>
-    <div class="row">
-        {% if user.is_authenticated %}
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-            <a href="{% url 'core:view_health_records' athlete.id %}" class="text-decoration-none text-reset">
-                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
-                    <img src="{% static 'core/img/heart.png' %}" class="card-img-top" alt="heart">
-                    <div class="card-body">
-                        <h5 class="card-title">Health Log</h5>
-                        <div class='card-text'>
-                            <p>Record and track your health stats</p>
-                        </div>
-                    </div>
+{% if user.is_authenticated %}
+    {% if athlete %}
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h3 class="text-center py-4">Dashboard</h3>
                 </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-            <a href="{% url 'core:view_workout_records' athlete.id %}" class="text-decoration-none text-reset">
-                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
-                    <img src="{% static 'core/img/scale.png' %}" class="card-img-top" alt="heart">
-                    <div class="card-body">
-                        <h5 class="card-title">Workout Log</h5>
-                        <div class='card-text'>
-                            <p>Record and track your workouts</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+                    <a href="{% url 'core:view_health_records' athlete.id %}" class="text-decoration-none text-reset">
+                        <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                            <img src="{% static 'core/img/heart.png' %}" class="card-img-top" alt="heart">
+                            <div class="card-body">
+                                <h5 class="card-title">Health Log</h5>
+                                <div class='card-text'>
+                                    <p>Record and track your health stats</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-            <a href="{% url 'core:view_profile' athlete.id %}" class="text-decoration-none text-reset">
-                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
-                    <img src="{% static 'core/img/tape.png' %}" class="card-img-top" alt="heart">
-                    <div class="card-body">
-                        <h5 class="card-title">View Profile</h5>
-                        <div class='card-text'>
-                            <p>View your current profile</p>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+                    <a href="{% url 'core:view_workout_records' athlete.id %}" class="text-decoration-none text-reset">
+                        <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                            <img src="{% static 'core/img/scale.png' %}" class="card-img-top" alt="heart">
+                            <div class="card-body">
+                                <h5 class="card-title">Workout Log</h5>
+                                <div class='card-text'>
+                                    <p>Record and track your workouts</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-            <a href="{% url 'core:select_equipment' athlete.id %}" class="text-decoration-none text-reset">
-                <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
-                    <img src="{% static 'core/img/weights.png' %}" class="card-img-top" alt="heart">
-                    <div class="card-body">
-                        <h5 class="card-title">Workout Generator</h5>
-                        <div class='card-text'>
-                            <p>Generate a workout</p>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+                    <a href="{% url 'core:view_profile' athlete.id %}" class="text-decoration-none text-reset">
+                        <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                            <img src="{% static 'core/img/tape.png' %}" class="card-img-top" alt="heart">
+                            <div class="card-body">
+                                <h5 class="card-title">View Profile</h5>
+                                <div class='card-text'>
+                                    <p>View your current profile</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
-            </a>
-        </div>
-        {% else %}
-        <div class="row">
-            <div class="col">
-                <h3 class="text-center py-4">Please sign up or log in to continue</h3>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+                    <a href="{% url 'core:select_equipment' athlete.id %}" class="text-decoration-none text-reset">
+                        <div class="card h-100 hover:shadow-sm" style="max-width: 14rem;">
+                            <img src="{% static 'core/img/weights.png' %}" class="card-img-top" alt="heart">
+                            <div class="card-body">
+                                <h5 class="card-title">Workout Generator</h5>
+                                <div class='card-text'>
+                                    <p>Generate a workout</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
-        {% endif %}
-    </div>
-</div>
+    {% else %}
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h3 class="text-center py-4">Please create a new profile to begin.</h3>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 {% else %}
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h3 class="text-center py-4">Please create a new profile to begin.</h3>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3 class="text-center py-4">Please sign up or log in to continue.</h3>
+            </div>
         </div>
     </div>
 {% endif %}

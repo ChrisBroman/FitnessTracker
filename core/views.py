@@ -11,14 +11,12 @@ from .functions import *
 class Index(View):
     def get(self, request):
         user = request.user
-        if Athlete.objects.count() != 0:
+        context = {}
+
+        if user.is_authenticated:
             athlete = Athlete.objects.filter(user=user).first()
-            context = {
-                'user': user,
-                'athlete': athlete,
-            }
-        else:
-            context = {}
+            context['athlete'] = athlete
+
         return render(request, 'core/index.html', context)
     
 class Signup(View):
